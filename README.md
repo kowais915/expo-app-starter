@@ -1,5 +1,10 @@
 <div align="center">
 
+<img src="./assets/screenshots/hero.png" alt="Expo App Starter — a production-ready Expo starter with auth and a database already wired up" width="100%" />
+
+<br />
+<br />
+
 # Expo App Starter
 
 **A production-ready Expo starter with authentication and a database already wired up — and the tricky parts already solved.**
