@@ -10,6 +10,23 @@ and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 > Use it to cherry-pick the bits you want. Every entry names the *symptom*, so
 > you can tell at a glance whether it affects you.
 
+## [Unreleased]
+
+### Added
+
+- **CI.** `.github/workflows/ci.yml` runs `npm ci`, `npm run typecheck` and
+  `npm test` on every push and pull request.
+
+### Fixed
+
+- **`eas build` failed on a fresh clone.** `app.json` carried the original
+  author's `owner` field, pointing EAS at an Expo organization you aren't a
+  member of. Removed — add your own (see the README's rebranding section). The
+  bundle identifier and Android package are now the neutral
+  `com.example.expostarter`, which you must change before building anyway.
+
+---
+
 ## [1.1.0] — 2026-07-19
 
 ### Fixed

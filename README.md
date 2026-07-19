@@ -17,6 +17,7 @@ Stop rebuilding auth for every new app. Clone this, change one color, and start 
 [![Clerk](https://img.shields.io/badge/Clerk-6C47FF?style=for-the-badge&logo=clerk&logoColor=white)](https://clerk.com)
 [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
 
+[![CI](https://github.com/kowais915/expo-app-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/kowais915/expo-app-starter/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
@@ -113,10 +114,11 @@ const { data } = await db.from('your_table').select();
 ## Rebranding for your app
 
 1. **Accent color** — change `ACCENT` in `lib/theme.tsx`. One line recolors buttons, tabs, links, and focus states.
-2. **App name** — `app.json` (`name`, `slug`, `scheme`, iOS `bundleIdentifier`, Android `package`) and `package.json` (`name`). The header, auth screens, and logo read the name from `app.json` at runtime.
-3. **Keys** — point `.env.local` at your app's Clerk instance and Supabase project.
-4. **Art** — swap `assets/` icons, the auth backgrounds (`assets/images/sign-*-bg.jpg`), and `components/Logo.tsx`.
-5. **Screens** — the Home tab is placeholder scaffolding; build your real screens in `app/(tabs)/`.
+2. **App name** — `app.json` (`name`, `slug`, `scheme`, iOS `bundleIdentifier`, Android `package`) and `package.json` (`name`). The header, auth screens, and logo read the name from `app.json` at runtime. The bundle ID ships as `com.example.expostarter` — it **must** be changed before you build, since it's your app's permanent identity in both stores.
+3. **EAS owner** — if you build with EAS, add `"owner": "your-expo-account"` to `app.json`. It's intentionally absent so `eas build` doesn't try to build under someone else's organization.
+4. **Keys** — point `.env.local` at your app's Clerk instance and Supabase project.
+5. **Art** — swap `assets/` icons, the auth backgrounds (`assets/images/sign-*-bg.jpg`), and `components/Logo.tsx`.
+6. **Screens** — the Home tab is placeholder scaffolding; build your real screens in `app/(tabs)/`.
 
 ## Project structure
 

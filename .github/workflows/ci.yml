@@ -1,0 +1,42 @@
+# Runs on every push and PR.
+#
+# The point isn't sophistication — it's that a template gets copied, so a broken
+# `main` becomes someone else's broken app before they've written a line. This
+# catches that at push time rather than at clone time.
+#
+# `continue-on-error` is set nowhere on purpose: a failing check that's allowed
+# to fail is just a slower way of not having a check.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A second push supersedes the first — don't burn minutes on a stale commit.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `ci`, not `install`: it installs exactly what package-lock.json pins and
+      # fails if the two disagree. That disagreement is worth failing on — it
+      # means someone cloning gets different versions than you tested.
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test -- --ci

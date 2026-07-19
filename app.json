@@ -15,13 +15,13 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.apptemplate",
+      "bundleIdentifier": "com.example.expostarter",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.example.apptemplate",
+      "package": "com.example.expostarter",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -33,7 +33,6 @@
       "bundler": "metro",
       "favicon": "./assets/favicon.png"
     },
-    "owner": "example",
     "plugins": [
       "expo-router",
       "expo-asset",
