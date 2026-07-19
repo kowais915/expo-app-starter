@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useKeyboardHeight } from '@/lib/useKeyboard';
 import {
   View, Text, TextInput, Pressable, StyleSheet,
   ScrollView, ActivityIndicator,
@@ -24,6 +25,7 @@ const ERROR_COLOR = '#FF5555';
 export default function VerifyScreen() {
   const { signUp, setActive, isLoaded } = useSignUp();
   const router = useRouter();
+  const keyboardHeight = useKeyboardHeight();
 
   const [code, setCode] = useState('');
   const [focused, setFocused] = useState(false);
@@ -38,14 +40,23 @@ export default function VerifyScreen() {
     try {
       const result = await signUp.attemptEmailAddressVerification({ code });
       if (result.status === 'complete') {
+      /*
+       * Deliberately no router.replace here.
+       *
+       * `setActive` flips Clerk's isSignedIn, and the route guard in
+       * app/_layout.tsx redirects on that. Navigating here as well races the
+       * guard: two redirects fire for one state change, and the loser can
+       * leave the app on the splash cover until it's force-quit. Let the guard
+       * own every post-auth navigation — it's the single place that knows
+       * where a signed-in user belongs.
+       */
         await setActive({ session: result.createdSessionId });
-        router.replace('/(tabs)');
-      } else {
-        setError('Verification incomplete. Please try again.');
+        return; // screen unmounts; leave the button in its loading state
       }
+      setError('Verification incomplete. Please try again.');
+      setLoading(false);
     } catch (err: any) {
       setError(err?.errors?.[0]?.message || 'Invalid or expired code.');
-    } finally {
       setLoading(false);
     }
   };
@@ -68,10 +79,21 @@ export default function VerifyScreen() {
       <View style={styles.glow} pointerEvents="none" />
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
           <ScrollView
-            contentContainerStyle={styles.container}
+            contentContainerStyle={[
+              styles.container,
+              /*
+               * Reserve the keyboard's height so the submit button stays
+               * reachable. `automaticallyAdjustKeyboardInsets` is iOS-only and
+               * KeyboardAvoidingView has no working Android behavior under
+               * edge-to-edge — see lib/useKeyboard.ts.
+               */
+              keyboardHeight > 0 && {
+                justifyContent: 'flex-start',
+                paddingBottom: keyboardHeight + 24,
+              },
+            ]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
-            automaticallyAdjustKeyboardInsets
           >
             {/* Logo */}
             <View style={styles.logoBlock}>

@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useKeyboardHeight } from '@/lib/useKeyboard';
 import {
   View, Text, TextInput, Pressable, StyleSheet,
   ScrollView, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSignIn, useAuth } from '@clerk/clerk-expo';
+import { useSignIn } from '@clerk/clerk-expo';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
@@ -24,14 +25,8 @@ const ERROR_COLOR = '#FF5555';
 
 export default function SignInScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
-  const { isSignedIn } = useAuth();
   const router = useRouter();
-
-  // Already signed in? Skip the form and head to the app — prevents Clerk's
-  // "Session already exists" error if a signed-in user lands here.
-  useEffect(() => {
-    if (isSignedIn) router.replace('/(tabs)');
-  }, [isSignedIn]);
+  const keyboardHeight = useKeyboardHeight();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,8 +43,18 @@ export default function SignInScreen() {
     try {
       const result = await signIn.create({ identifier: email.trim(), password });
       if (result.status === 'complete') {
+      /*
+       * Deliberately no router.replace here.
+       *
+       * `setActive` flips Clerk's isSignedIn, and the route guard in
+       * app/_layout.tsx redirects on that. Navigating here as well races the
+       * guard: two redirects fire for one state change, and the loser can
+       * leave the app on the splash cover until it's force-quit. Let the guard
+       * own every post-auth navigation — it's the single place that knows
+       * where a signed-in user belongs.
+       */
         await setActive({ session: result.createdSessionId });
-        router.replace('/(tabs)');
+        return;
       } else {
         setError('Unable to complete sign-in. Please try again.');
       }
@@ -65,10 +70,21 @@ export default function SignInScreen() {
       <View style={styles.glow} pointerEvents="none" />
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
           <ScrollView
-            contentContainerStyle={styles.container}
+            contentContainerStyle={[
+              styles.container,
+              /*
+               * Reserve the keyboard's height so the submit button stays
+               * reachable. `automaticallyAdjustKeyboardInsets` is iOS-only and
+               * KeyboardAvoidingView has no working Android behavior under
+               * edge-to-edge — see lib/useKeyboard.ts.
+               */
+              keyboardHeight > 0 && {
+                justifyContent: 'flex-start',
+                paddingBottom: keyboardHeight + 24,
+              },
+            ]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
-            automaticallyAdjustKeyboardInsets
           >
             {/* Logo */}
             <View style={styles.logoBlock}>

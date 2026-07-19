@@ -1,0 +1,22 @@
+# Shapes GitHub's "Generate release notes" button.
+#
+# Treat the output as a DRAFT. For a template, the valuable part of a release
+# note is why a change matters and which files to copy — neither of which can be
+# derived from PR titles. Generate, then rewrite from CHANGELOG.md.
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - dependabot
+  categories:
+    - title: Fixed
+      labels: ['bug', 'fix']
+    - title: Added
+      labels: ['enhancement', 'feature']
+    - title: Changed
+      labels: ['refactor', 'change']
+    - title: Documentation
+      labels: ['documentation', 'docs']
+    - title: Other
+      labels: ['*']

@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useKeyboardHeight } from '@/lib/useKeyboard';
 import {
   View, Text, TextInput, Pressable, StyleSheet,
   ScrollView, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSignUp, useAuth } from '@clerk/clerk-expo';
+import { useSignUp } from '@clerk/clerk-expo';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
@@ -24,13 +25,8 @@ const ERROR_COLOR = '#FF5555';
 
 export default function SignUpScreen() {
   const { signUp, setActive, isLoaded } = useSignUp();
-  const { isSignedIn } = useAuth();
   const router = useRouter();
-
-  // Already signed in? Head to the app instead of showing the form.
-  useEffect(() => {
-    if (isSignedIn) router.replace('/(tabs)');
-  }, [isSignedIn]);
+  const keyboardHeight = useKeyboardHeight();
 
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
@@ -51,8 +47,18 @@ export default function SignUpScreen() {
         password,
       });
       if (result.status === 'complete') {
+      /*
+       * Deliberately no router.replace here.
+       *
+       * `setActive` flips Clerk's isSignedIn, and the route guard in
+       * app/_layout.tsx redirects on that. Navigating here as well races the
+       * guard: two redirects fire for one state change, and the loser can
+       * leave the app on the splash cover until it's force-quit. Let the guard
+       * own every post-auth navigation — it's the single place that knows
+       * where a signed-in user belongs.
+       */
         await setActive({ session: result.createdSessionId });
-        router.replace('/(tabs)');
+        return;
       } else if (result.status === 'missing_requirements') {
         await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
         router.push('/(auth)/verify');
@@ -77,10 +83,21 @@ export default function SignUpScreen() {
       <View style={styles.glow} pointerEvents="none" />
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
           <ScrollView
-            contentContainerStyle={styles.container}
+            contentContainerStyle={[
+              styles.container,
+              /*
+               * Reserve the keyboard's height so the submit button stays
+               * reachable. `automaticallyAdjustKeyboardInsets` is iOS-only and
+               * KeyboardAvoidingView has no working Android behavior under
+               * edge-to-edge — see lib/useKeyboard.ts.
+               */
+              keyboardHeight > 0 && {
+                justifyContent: 'flex-start',
+                paddingBottom: keyboardHeight + 24,
+              },
+            ]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
-            automaticallyAdjustKeyboardInsets
           >
             {/* Logo */}
             <View style={styles.logoBlock}>

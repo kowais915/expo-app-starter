@@ -24,6 +24,9 @@ Stop rebuilding auth for every new app. Clone this, change one color, and start 
 
 ---
 
+📋 **[Changelog](./CHANGELOG.md)** — already cloned this? Each release links a
+compare view so you can see exactly what changed and cherry-pick.
+
 ## Why this exists
 
 Every new mobile app needs the same boilerplate: sign in, sign up, email verification, an auth-gated area, a database client, theming, settings. Getting auth and a database to play nicely — and dodging the subtle bugs (token-refresh reloads, cold-start flashes, "session already exists") — eats days. This template has all of it done and hardened, so you can start on the part that's actually your app.
@@ -37,6 +40,7 @@ Every new mobile app needs the same boilerplate: sign in, sign up, email verific
 - 🎨 **One-knob theming** — dark/light with a persisted toggle, a typed palette, and a single `ACCENT` color that recolors the entire app.
 - 🧭 **Navigation** — [Expo Router](https://docs.expo.dev/router/introduction/) file-based routing, a custom bottom tab bar, and a swipe-to-dismiss settings drawer.
 - 🧱 **Sensible components** — a reusable header and a monogram logo generated from your app name.
+- 🧪 **Tests that run on `npm test`** — Jest + React Native Testing Library, with the native modules that normally throw under Node already mocked (safe-area, Secure Store, AsyncStorage, Clerk).
 - ✅ **TypeScript throughout**, strict and clean.
 
 ### Already hardened for you
@@ -45,7 +49,9 @@ These are the Clerk/Expo footguns most starters miss — solved here:
 
 - **No token-refresh flash.** The Supabase client is created once and reads the latest token via a ref, so Clerk's ~1-minute token rotation never rebuilds the client or reloads your screens.
 - **No cold-start flash.** A splash cover holds until the session resolves and the visible route matches — you never see the wrong screen for a frame.
-- **No "Session already exists."** Auth screens redirect away when a session is already active.
+- **No "Session already exists."** A single route guard owns every post-auth redirect, so auth screens never navigate after `setActive` — two redirects racing on one state change is what leaves apps stuck on a splash cover.
+- **The splash cover can't strand you.** If a redirect never lands, a failsafe drops the cover and re-asserts the destination rather than hanging forever.
+- **Keyboard doesn't bury your buttons — on either platform.** `automaticallyAdjustKeyboardInsets` is iOS-only and `KeyboardAvoidingView` has no working Android behavior under edge-to-edge, so `useKeyboardHeight()` measures it directly.
 
 ## Tech stack
 
@@ -72,6 +78,10 @@ cp .env.example .env.local   # fill in your Clerk + Supabase keys
 
 # 4. Run
 npx expo start
+
+# Also available
+npm test          # Jest + React Native Testing Library
+npm run typecheck # tsc --noEmit
 ```
 
 ### Environment
